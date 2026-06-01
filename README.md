@@ -55,11 +55,7 @@ Această aplicație este potrivită pentru:
 
 ## 🖼️ Preview
 
-> Adaugă aici o captură de ecran după ce urci proiectul pe GitHub.
-
-```md
-![Preview Bucătarul de Serviciu](screenshot/info.png)
-```
+![Vizualizare Bucătarul de Serviciu](screenshot/info.png)
 
 ---
 
