@@ -58,7 +58,7 @@ Această aplicație este potrivită pentru:
 > Adaugă aici o captură de ecran după ce urci proiectul pe GitHub.
 
 ```md
-![Preview Bucătarul de Serviciu](screenshots/preview.png)
+![Preview Bucătarul de Serviciu](screenshot/info.png)
 ```
 
 ---
