@@ -1,127 +1,190 @@
-<div align="center">
+<h1 align="center">🍲 Bucătarul de Serviciu</h1>
 
-# 🍲 Bucătarul de Serviciu
+<p align="center">
+  <strong>Generator inteligent de rețete în limba română</strong><br>
+  Rețete clare, rapide și ușor de urmat, pornind de la ingredientele pe care le ai deja în casă.
+</p>
 
-### Generator modern de rețete în limba română, pe baza ingredientelor pe care le ai deja în casă.
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-8%2B-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8+">
+  <img src="https://img.shields.io/badge/AI-Puter.js-00D1FF?style=for-the-badge" alt="Puter.js AI">
+  <img src="https://img.shields.io/badge/Storage-Server_JSON-2F7D57?style=for-the-badge&logo=json&logoColor=white" alt="Server JSON">
+  <img src="https://img.shields.io/badge/Language-Română-F0A63B?style=for-the-badge" alt="Română">
+</p>
 
-![PHP](https://img.shields.io/badge/PHP-8%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)
-![AI](https://img.shields.io/badge/AI-Puter.js-FFB000?style=for-the-badge&logo=openai&logoColor=black)
-![Language](https://img.shields.io/badge/Limba-Rom%C3%A2n%C4%83-002B7F?style=for-the-badge)
-![Responsive](https://img.shields.io/badge/Design-Responsive-2F7D57?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-b3561c?style=for-the-badge)
-
-<br>
-
-**Bucătarul de Serviciu** este o aplicație web simplă, elegantă și utilă, creată pentru a genera rețete în română pornind de la ingredientele disponibile în casă.
-
-Este gândită special pentru utilizatori obișnuiți, părinți sau persoane care vor explicații clare, pași simpli și rezultate rapide.
-
-<br>
-
-</div>
-
----
-
-## ✨ Ce face aplicația
-
-Aplicația permite introducerea ingredientelor disponibile, apoi folosește AI prin **Puter.js** pentru a genera o rețetă completă în limba română.
-
-Rezultatul include:
-
-- 🥕 ingrediente principale;
-- 🧂 ingrediente de bază presupuse;
-- 🛒 ingrediente care ar ajuta, dar nu sunt obligatorii;
-- 🍳 ustensile necesare;
-- 👨‍🍳 pași de preparare explicați clar;
-- ⏱️ timp de pregătire și timp de gătire;
-- ✅ cum îți dai seama că mâncarea este gata;
-- 💡 sfaturi utile pentru părinți;
-- ⚠️ atenționări de siguranță alimentară;
-- 🖨️ opțiune de printare a rețetei.
-
----
-
-## 🎯 Pentru cine este utilă
-
-Această aplicație este potrivită pentru:
-
-- familii care vor idei rapide de mâncare;
-- părinți sau bunici care preferă explicații clare;
-- persoane care nu vor să caute manual rețete;
-- utilizatori care vor să gătească doar cu ce au deja în casă;
-- proiecte personale, server local, mini-dashboard de bucătărie sau aplicație self-hosted.
+<p align="center">
+  <a href="#-preview">Preview</a> •
+  <a href="#-funcționalități">Funcționalități</a> •
+  <a href="#-instalare">Instalare</a> •
+  <a href="#-structură-proiect">Structură</a> •
+  <a href="#-github">GitHub</a>
+</p>
 
 ---
 
 ## 🖼️ Preview
 
-![Vizualizare Bucătarul de Serviciu](screenshot/info.png)
+Pune captura aplicației în folderul `screenshot`, cu numele `info.png`.
+
+<p align="center">
+  <img src="screenshot/info.png" alt="Bucătarul de Serviciu - Preview" width="900">
+</p>
 
 ---
 
-## 🚀 Funcționalități principale
+## ✨ Descriere
 
-| Funcție | Descriere |
-|---|---|
-| 📝 Introducere ingrediente | Scrii ingredientele disponibile în casă. |
-| 🎛️ Preferințe rețetă | Alegi dificultatea, timpul, porțiile și stilul de mâncare. |
-| ✅ Opțiuni speciale | Fără prăjeli, ușor de mestecat, cu sare puțină. |
-| 🤖 Generare AI | Rețeta este generată automat în română. |
-| 📦 Răspuns structurat | AI-ul returnează date în format JSON, apoi aplicația le afișează frumos. |
-| 🖨️ Printare | Poți printa rețeta într-un format curat. |
-| 📱 Responsive | Merge bine pe desktop, tabletă și telefon. |
+**Bucătarul de Serviciu** este o aplicație PHP modernă care generează rețete în limba română pe baza ingredientelor disponibile în casă.
+
+Aplicația este gândită pentru utilizare simplă, inclusiv de către părinți, bunici sau persoane care vor instrucțiuni clare, fără termeni complicați.
+
+Introduceți ingredientele, alegeți preferințele, iar aplicația generează o rețetă completă cu:
+
+- ingrediente principale;
+- ingrediente de bază presupuse;
+- ustensile necesare;
+- pași de preparare;
+- timp de pregătire și gătire;
+- sfaturi utile;
+- atenționări alimentare;
+- idee de servire;
+- mod de păstrare.
+
+---
+
+## 🚀 Funcționalități
+
+### 🧠 Generare rețete cu AI
+
+Aplicația folosește **Puter.js** în browser pentru generarea rețetelor, fără să fie nevoie să setezi o cheie API în PHP.
+
+```html
+<script src="https://js.puter.com/v2/"></script>
+```
+
+Modelul folosit în script este:
+
+```js
+model: "gpt-5-nano"
+```
+
+### 🇷🇴 Răspunsuri în limba română
+
+Promptul este configurat astfel încât rețetele să fie generate **100% în limba română**, cu explicații simple și clare.
+
+### 💾 Salvare rețete pe server
+
+Rețetele generate sunt salvate pe server în fișierul:
+
+```txt
+data/recipes.json
+```
+
+Nu se salvează în browser, deci istoricul poate fi accesat de pe același server.
+
+### 📚 Istoric rețete
+
+Aplicația include un panou dedicat pentru:
+
+- afișarea rețetelor salvate;
+- selectarea unei rețete din istoric;
+- redeschiderea unei rețete salvate;
+- ștergerea unei rețete;
+- golirea completă a istoricului.
+
+### 📴 Mod offline
+
+Rețetele salvate anterior pot fi redeschise din istoricul local de pe server, fără să mai fie nevoie de generare AI.
+
+### 📄 Export PDF
+
+Exportul PDF se face prin funcția de printare a browserului:
+
+```txt
+Print / Save as PDF
+```
+
+Aplicația are stiluri speciale pentru print, astfel încât PDF-ul să conțină doar rețeta, fără formular și fără elemente inutile.
+
+### 🎨 Design modern
+
+Interfața este construită cu CSS custom, cu aspect modern:
+
+- fundal dark premium;
+- carduri glassmorphism;
+- butoane gradient;
+- panou de istoric;
+- carduri pentru rețetă;
+- responsive pentru mobil;
+- stil curat pentru printare.
 
 ---
 
 ## 🧰 Tehnologii folosite
 
-- **PHP 8+** pentru fișierul principal și servirea paginii;
-- **HTML5** pentru structură;
-- **CSS3** pentru design modern și responsive;
-- **JavaScript Vanilla** pentru logica din browser;
-- **Puter.js** pentru apelarea modelului AI fără backend complicat;
-- **JSON** pentru răspuns structurat de la AI.
+| Tehnologie | Rol |
+|---|---|
+| PHP 8+ | backend simplu și salvare pe server |
+| JavaScript | logică frontend și comunicare cu AI |
+| Puter.js | generare rețete AI fără API key în PHP |
+| JSON | salvare rețete în `data/recipes.json` |
+| HTML5 / CSS3 | interfață modernă și responsive |
 
 ---
 
-## 📦 Instalare pe Ubuntu / Apache
+## 📦 Structură proiect
 
-### 1. Creează folderul aplicației
+```txt
+Bucatarul_De_Serviciu/
+├── index.php
+├── data/
+│   └── recipes.json
+├── screenshot/
+│   └── info.png
+└── README.md
+```
+
+---
+
+## 🛠️ Instalare
+
+### 1. Copiază proiectul pe server
+
+Exemplu pentru Apache pe Ubuntu:
 
 ```bash
 sudo mkdir -p /var/www/html/bucatar
-```
-
-### 2. Copiază fișierul aplicației
-
-Dacă fișierul tău se numește `index.php`:
-
-```bash
 sudo cp index.php /var/www/html/bucatar/index.php
 ```
 
-Sau editează direct:
+### 2. Creează folderul pentru salvarea rețetelor
 
 ```bash
-sudo nano /var/www/html/bucatar/index.php
+sudo mkdir -p /var/www/html/bucatar/data
 ```
 
-### 3. Setează permisiuni simple
+### 3. Creează fișierul `recipes.json`
 
 ```bash
-sudo chown -R www-data:www-data /var/www/html/bucatar
-sudo chmod -R 755 /var/www/html/bucatar
+echo "[]" | sudo tee /var/www/html/bucatar/data/recipes.json
 ```
 
-### 4. Deschide în browser
+### 4. Setează permisiunile
 
-Local:
+Pentru Apache pe Ubuntu:
+
+```bash
+sudo chown -R www-data:www-data /var/www/html/bucatar/data
+sudo chmod -R 775 /var/www/html/bucatar/data
+```
+
+### 5. Accesează aplicația
 
 ```txt
 http://localhost/bucatar/
 ```
 
-Din rețea:
+sau:
 
 ```txt
 http://IP-SERVER/bucatar/
@@ -129,167 +192,194 @@ http://IP-SERVER/bucatar/
 
 ---
 
-## 🖥️ Instalare rapidă pe orice server PHP
+## 🔐 Permisiuni importante
 
-Aplicația este formată dintr-un singur fișier PHP.
-
-Ai nevoie doar de:
-
-- server web cu PHP;
-- conexiune la internet pentru încărcarea Puter.js;
-- browser modern.
-
-Nu ai nevoie de bază de date.
-Nu ai nevoie de cheie API în PHP.
-
----
-
-## ⚙️ Cum se folosește
-
-1. Deschizi aplicația în browser.
-2. Scrii ingredientele disponibile, de exemplu:
+Aplicația trebuie să poată scrie în folderul:
 
 ```txt
-cartofi, ouă, ceapă, brânză, roșii
+data/
 ```
 
-3. Completezi opțional preferințele:
+Dacă salvarea rețetelor nu funcționează, verifică:
 
-```txt
-să fie fără prăjeli, ușor de mestecat, potrivit pentru cină
+```bash
+ls -la /var/www/html/bucatar/data
 ```
 
-4. Alegi:
+și repară permisiunile:
 
-- dificultatea;
-- timpul disponibil;
-- numărul de porții;
-- stilul de mâncare.
-
-5. Apeși **Generare rețeta**.
-6. Primești rețeta completă, structurată și gata de printat.
-
----
-
-## 🧠 Exemplu de rezultat generat
-
-```txt
-Titlu: Cartofi cu ouă și brânză la tigaie
-Timp total: 30-35 minute
-Porții: 2
-Dificultate: Foarte ușor
-```
-
-Aplicația va afișa apoi ingredientele, pașii de preparare, sfaturile și atenționările într-un design modern.
-
----
-
-## 🛡️ Observații importante
-
-Aplicația folosește AI, deci rezultatele trebuie tratate ca sugestii culinare.
-
-Verifică mereu:
-
-- prospețimea ingredientelor;
-- gătirea completă a cărnii, ouălor și peștelui;
-- alergiile alimentare;
-- cantitatea de sare, zahăr sau grăsimi, mai ales pentru persoane cu restricții alimentare.
-
----
-
-## 🔐 Despre API și autentificare
-
-Această variantă folosește **Puter.js** direct în browser.
-
-Avantaje:
-
-- nu pui chei API în codul PHP;
-- nu ai nevoie de backend AI separat;
-- aplicația rămâne simplă și ușor de găzduit.
-
-În funcție de model și limitări, prima utilizare poate cere autentificare Puter în browser.
-
----
-
-## 📁 Structură recomandată pentru GitHub
-
-```txt
-bucatarul-de-serviciu/
-├── index.php
-├── README.md
-├── screenshots/
-│   └── preview.png
-└── LICENSE
+```bash
+sudo chown -R www-data:www-data /var/www/html/bucatar/data
+sudo chmod -R 775 /var/www/html/bucatar/data
 ```
 
 ---
 
-## 🎨 Personalizare
+## 🧪 API intern
 
-Poți modifica rapid aplicația din secțiunea CSS:
+Fișierul `index.php` include și un mic API intern pentru salvare/citire rețete.
+
+| Endpoint | Metodă | Rol |
+|---|---:|---|
+| `?api=list` | GET | listează rețetele salvate |
+| `?api=save` | POST | salvează o rețetă |
+| `?api=delete` | POST | șterge o rețetă după ID |
+| `?api=clear` | POST | golește istoricul |
+
+Exemplu de fișier salvat:
+
+```json
+[
+  {
+    "id": "reteta_20260602_120000_ab12cd34",
+    "title": "Cartofi cu ouă și brânză",
+    "description": "O rețetă simplă și rapidă.",
+    "createdAt": "2026-06-02T12:00:00+03:00",
+    "source": "generată",
+    "recipe": {}
+  }
+]
+```
+
+---
+
+## 🧾 Export PDF
+
+Pentru export PDF:
+
+1. deschide o rețetă;
+2. apasă **Exportare PDF**;
+3. în fereastra de print a browserului alege **Save as PDF** / **Salvare ca PDF**.
+
+---
+
+## 🖥️ Compatibilitate
+
+Testat pentru:
+
+- Apache + PHP 8+
+- Linux / Ubuntu
+- Chrome / Chromium
+- Firefox
+- Edge
+
+---
+
+## ⚠️ Observații
+
+Prima utilizare a funcției AI poate cere autentificare Puter în browser, în funcție de model și limitări.
+
+Aplicația nu este un sistem medical sau nutrițional. Rețetele generate trebuie verificate înainte de utilizare, mai ales în cazul alergiilor, dietelor stricte sau problemelor alimentare.
+
+---
+
+## 🌈 Personalizare rapidă
+
+Culorile principale sunt definite în `:root`:
 
 ```css
 :root {
+    --bg: #0f1210;
     --accent: #b3561c;
     --accent2: #f0a63b;
     --accent3: #2f7d57;
 }
 ```
 
-Idei de personalizare:
+Poți schimba rapid atmosfera aplicației modificând aceste variabile.
 
-- schimbare culori;
-- adăugare logo;
-- adăugare fundal cu imagine;
-- salvare rețete generate;
-- export PDF;
-- istoric rețete;
-- mod întunecat / mod luminos.
+---
+
+## 🧹 Curățare istoric
+
+Istoricul poate fi golit direct din interfață, cu butonul:
+
+```txt
+Golire istoric
+```
+
+Sau manual, din server:
+
+```bash
+echo "[]" | sudo tee /var/www/html/bucatar/data/recipes.json
+```
+
+---
+
+## 🧑‍💻 GitHub
+
+### Inițializare repository
+
+```bash
+git init
+git add index.php README.md screenshot/info.png
+git commit -m "Initial release - Bucatarul de Serviciu"
+```
+
+### Adăugare remote
+
+```bash
+git remote add origin https://github.com/USERNAME/Bucatarul_De_Serviciu.git
+git branch -M main
+git push -u origin main
+```
+
+---
+
+## 📸 Imagine în README
+
+Pentru ca imaginea să apară corect pe GitHub:
+
+```txt
+screenshot/info.png
+```
+
+În README trebuie să fie:
+
+```md
+<p align="center">
+  <img src="screenshot/info.png" alt="Bucătarul de Serviciu - Preview" width="900">
+</p>
+```
+
+Nu pune imaginea între blocuri de cod cu ```.
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Salvare rețete favorite;
-- [ ] Export PDF;
-- [ ] Istoric rețete generate;
-- [ ] Mod offline cu rețete predefinite;
-- [ ] Selector temă dark/light;
-- [ ] Galerie cu imagini pentru rețete;
-- [ ] Buton pentru copiere rețetă în clipboard.
+- [x] Generare rețete cu AI
+- [x] Interfață modernă
+- [x] Salvare rețete pe server
+- [x] Istoric rețete
+- [x] Mod offline pentru rețete salvate
+- [x] Export PDF
+- [ ] Căutare în rețetele salvate
+- [ ] Categorii pentru rețete
+- [ ] Favorite
+- [ ] Import / export complet JSON
+- [ ] Protejare istoric cu parolă
 
 ---
 
 ## 🤝 Contribuții
 
-Contribuțiile sunt binevenite.
-
-Poți deschide un issue sau un pull request pentru:
-
-- bug-uri;
-- îmbunătățiri UI;
-- optimizări JavaScript;
-- traduceri;
-- funcții noi.
+Pull request-urile sunt binevenite.  
+Poți propune îmbunătățiri pentru design, funcționalități sau optimizare.
 
 ---
 
 ## 📄 Licență
 
-Acest proiect poate fi publicat sub licența **MIT**.
-
-Poți folosi, modifica și distribui aplicația liber, păstrând mențiunea autorului dacă dorești.
+Acest proiect poate fi folosit și modificat liber pentru uz personal sau educațional.
 
 ---
 
-<div align="center">
+<p align="center">
+  <strong>🍲 Bucătarul de Serviciu</strong><br>
+  Rețete clare, rapide și salvate pe server.
+</p>
 
-### 🍽️ Bucătarul de Serviciu
-
-**Din ingrediente simple, idei bune de mâncare.**
-
-<br>
-
-Made with ❤️ în România
-
-</div>
+<p align="center">
+  Made with ❤️ in România
+</p>
