@@ -15,8 +15,7 @@
 <p align="center">
   <a href="#-preview">Previzualizare</a> •
   <a href="#-funcționalități">Funcționalități</a> •
-  <a href="#-structură-proiect">Structură</a> •
-  <a href="#-roadmap">Ce mai avem de făcut</a>
+  <a href="#-structură-proiect">Structură</a>
 </p>
 
 ---
