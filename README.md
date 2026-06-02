@@ -17,7 +17,7 @@
   <a href="#-funcționalități">Funcționalități</a> •
   <a href="#-instalare">Instalare</a> •
   <a href="#-structură-proiect">Structură</a> •
-  <a href="#-instalare">Instalare</a>
+  <a href="#-roadmap">Ce mai avem de făcut</a>
 </p>
 
 ---
