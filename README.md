@@ -22,7 +22,7 @@
 
 ---
 
-## 🖼️ Preview
+## 🖼️ Previzualizare
 
 <p align="center">
   <img src="screenshot/info.png" alt="Bucătarul de Serviciu - Preview" width="900">
@@ -99,7 +99,7 @@ Rețetele salvate anterior pot fi redeschise din istoricul local de pe server, f
 Exportul PDF se face prin funcția de printare a browserului:
 
 ```txt
-Print / Save as PDF
+Printare / Salvare ca PDF
 ```
 
 Aplicația are stiluri speciale pentru print, astfel încât PDF-ul să conțină doar rețeta, fără formular și fără elemente inutile.
