@@ -306,46 +306,6 @@ echo "[]" | sudo tee /var/www/html/bucatar/data/recipes.json
 
 ---
 
-## 🧑‍💻 GitHub
-
-### Inițializare repository
-
-```bash
-git init
-git add index.php README.md screenshot/info.png
-git commit -m "Initial release - Bucatarul de Serviciu"
-```
-
-### Adăugare remote
-
-```bash
-git remote add origin https://github.com/USERNAME/Bucatarul_De_Serviciu.git
-git branch -M main
-git push -u origin main
-```
-
----
-
-## 📸 Imagine în README
-
-Pentru ca imaginea să apară corect pe GitHub:
-
-```txt
-screenshot/info.png
-```
-
-În README trebuie să fie:
-
-```md
-<p align="center">
-  <img src="screenshot/info.png" alt="Bucătarul de Serviciu - Preview" width="900">
-</p>
-```
-
-Nu pune imaginea între blocuri de cod cu ```.
-
----
-
 ## 🗺️ Roadmap
 
 - [x] Generare rețete cu AI
