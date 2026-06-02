@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="#-preview">Preview</a> •
+  <a href="#-preview">Previzualizare</a> •
   <a href="#-funcționalități">Funcționalități</a> •
   <a href="#-instalare">Instalare</a> •
   <a href="#-structură-proiect">Structură</a> •
@@ -23,8 +23,6 @@
 ---
 
 ## 🖼️ Preview
-
-Pune captura aplicației în folderul `screenshot`, cu numele `info.png`.
 
 <p align="center">
   <img src="screenshot/info.png" alt="Bucătarul de Serviciu - Preview" width="900">
