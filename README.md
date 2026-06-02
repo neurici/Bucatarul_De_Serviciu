@@ -339,5 +339,5 @@ Acest proiect poate fi folosit și modificat liber pentru uz personal sau educa�
 </p>
 
 <p align="center">
-  Made with ❤️ in România
+  Creat cu ❤️ în România
 </p>
