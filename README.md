@@ -17,7 +17,7 @@
   <a href="#-funcționalități">Funcționalități</a> •
   <a href="#-instalare">Instalare</a> •
   <a href="#-structură-proiect">Structură</a> •
-  <a href="#-github">GitHub</a>
+  <a href="#-instalare">Instalare</a>
 </p>
 
 ---
