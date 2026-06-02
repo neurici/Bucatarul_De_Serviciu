@@ -1,5 +1,153 @@
 <?php
 declare(strict_types=1);
+
+/*
+    Bucătarul de Serviciu - salvare rețete pe server
+    Datele sunt salvate în: ./data/recipes.json
+*/
+
+const DATA_DIR = __DIR__ . '/data';
+const RECIPES_FILE = DATA_DIR . '/recipes.json';
+
+function jsonResponse(array $payload, int $statusCode = 200): void {
+    http_response_code($statusCode);
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    exit;
+}
+
+function ensureStorage(): void {
+    if (!is_dir(DATA_DIR)) {
+        if (!mkdir(DATA_DIR, 0775, true) && !is_dir(DATA_DIR)) {
+            jsonResponse(['ok' => false, 'error' => 'Nu pot crea folderul data pentru salvarea rețetelor.'], 500);
+        }
+    }
+
+    if (!file_exists(RECIPES_FILE)) {
+        if (file_put_contents(RECIPES_FILE, "[]", LOCK_EX) === false) {
+            jsonResponse(['ok' => false, 'error' => 'Nu pot crea fișierul data/recipes.json. Verifică permisiunile.'], 500);
+        }
+    }
+}
+
+function readRecipes(): array {
+    ensureStorage();
+
+    $raw = file_get_contents(RECIPES_FILE);
+    if ($raw === false || trim($raw) === '') {
+        return [];
+    }
+
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : [];
+}
+
+function writeRecipes(array $recipes): void {
+    ensureStorage();
+
+    $json = json_encode(array_values($recipes), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    if ($json === false) {
+        jsonResponse(['ok' => false, 'error' => 'Nu pot transforma rețetele în JSON.'], 500);
+    }
+
+    if (file_put_contents(RECIPES_FILE, $json, LOCK_EX) === false) {
+        jsonResponse(['ok' => false, 'error' => 'Nu pot salva în data/recipes.json. Verifică permisiunile folderului data.'], 500);
+    }
+}
+
+function getJsonInput(): array {
+    $raw = file_get_contents('php://input');
+    $data = json_decode($raw ?: '', true);
+    return is_array($data) ? $data : [];
+}
+
+function safeScalar(mixed $value, string $fallback = ''): string {
+    return is_scalar($value) ? trim((string)$value) : $fallback;
+}
+
+function makeRecipeId(): string {
+    try {
+        return 'reteta_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4));
+    } catch (Throwable $e) {
+        return 'reteta_' . date('Ymd_His') . '_' . mt_rand(1000, 9999);
+    }
+}
+
+if (isset($_GET['api'])) {
+    $action = (string)$_GET['api'];
+
+    try {
+        if ($action === 'list') {
+            $recipes = readRecipes();
+            usort($recipes, fn($a, $b) => strcmp((string)($b['createdAt'] ?? ''), (string)($a['createdAt'] ?? '')));
+            jsonResponse(['ok' => true, 'recipes' => $recipes]);
+        }
+
+        if ($action === 'save') {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                jsonResponse(['ok' => false, 'error' => 'Metodă invalidă.'], 405);
+            }
+
+            $input = getJsonInput();
+            $recipe = $input['recipe'] ?? null;
+            $source = safeScalar($input['source'] ?? 'salvată');
+
+            if (!is_array($recipe)) {
+                jsonResponse(['ok' => false, 'error' => 'Rețeta primită nu este validă.'], 400);
+            }
+
+            $recipes = readRecipes();
+            $record = [
+                'id' => makeRecipeId(),
+                'title' => safeScalar($recipe['titlu'] ?? 'Rețetă fără titlu', 'Rețetă fără titlu'),
+                'description' => safeScalar($recipe['descriere'] ?? ''),
+                'createdAt' => date('c'),
+                'source' => $source,
+                'recipe' => $recipe,
+            ];
+
+            array_unshift($recipes, $record);
+            $recipes = array_slice($recipes, 0, 500);
+            writeRecipes($recipes);
+
+            jsonResponse(['ok' => true, 'record' => $record, 'count' => count($recipes)]);
+        }
+
+        if ($action === 'delete') {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                jsonResponse(['ok' => false, 'error' => 'Metodă invalidă.'], 405);
+            }
+
+            $input = getJsonInput();
+            $id = safeScalar($input['id'] ?? '');
+
+            if ($id === '') {
+                jsonResponse(['ok' => false, 'error' => 'Lipsește ID-ul rețetei.'], 400);
+            }
+
+            $recipes = readRecipes();
+            $before = count($recipes);
+            $recipes = array_values(array_filter($recipes, fn($item) => (string)($item['id'] ?? '') !== $id));
+            writeRecipes($recipes);
+
+            jsonResponse(['ok' => true, 'deleted' => $before !== count($recipes), 'count' => count($recipes)]);
+        }
+
+        if ($action === 'clear') {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                jsonResponse(['ok' => false, 'error' => 'Metodă invalidă.'], 405);
+            }
+
+            writeRecipes([]);
+            jsonResponse(['ok' => true, 'count' => 0]);
+        }
+
+        jsonResponse(['ok' => false, 'error' => 'Acțiune API necunoscută.'], 404);
+    } catch (Throwable $e) {
+        jsonResponse(['ok' => false, 'error' => $e->getMessage()], 500);
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="ro">
@@ -113,7 +261,7 @@ declare(strict_types=1);
             background: rgba(255,255,255,.10);
             border: 1px solid rgba(255,255,255,.16);
             backdrop-filter: blur(12px);
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 800;
         }
 
@@ -639,6 +787,166 @@ declare(strict_types=1);
             border-radius: 16px;
         }
 
+
+        .library-panel {
+            margin-top: 24px;
+            border-radius: var(--radius-xl);
+            padding: clamp(18px, 3vw, 26px);
+            background: rgba(255, 250, 240, .92);
+            border: 1px solid rgba(255,255,255,.52);
+            box-shadow: var(--shadow);
+        }
+
+        .library-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .library-title {
+            margin: 0;
+            font-size: clamp(24px, 3vw, 34px);
+            color: #351b0e;
+            letter-spacing: -.7px;
+        }
+
+        .library-subtitle {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.45;
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        .library-actions,
+        .recipe-tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .small-btn,
+        .ghost-btn,
+        .danger-btn,
+        .success-btn {
+            border: 0;
+            min-height: 48px;
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 950;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+        }
+
+        .small-btn {
+            color: #fff;
+            background: linear-gradient(135deg, #b3561c, #f0a63b);
+            box-shadow: 0 12px 24px rgba(179, 86, 28, .20);
+        }
+
+        .ghost-btn {
+            color: #4b2a19;
+            background: rgba(255,255,255,.76);
+            border: 1px solid rgba(109, 82, 52, .16);
+            box-shadow: 0 10px 22px rgba(62,39,18,.06);
+        }
+
+        .success-btn {
+            color: #fff;
+            background: linear-gradient(135deg, #2f7d57, #55b878);
+            box-shadow: 0 12px 24px rgba(47,125,87,.18);
+        }
+
+        .danger-btn {
+            color: #fff;
+            background: linear-gradient(135deg, #9e1f18, #d94b3f);
+            box-shadow: 0 12px 24px rgba(179,38,30,.18);
+        }
+
+        .small-btn:hover,
+        .ghost-btn:hover,
+        .danger-btn:hover,
+        .success-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.03);
+        }
+
+        .history-list {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .history-card {
+            border-radius: 18px;
+            padding: 16px;
+            background: rgba(255,255,255,.72);
+            border: 1px solid rgba(109,82,52,.13);
+            box-shadow: 0 10px 24px rgba(62,39,18,.06);
+        }
+
+        .history-card strong {
+            display: block;
+            color: #351b0e;
+            font-size: 16px;
+            line-height: 1.25;
+            margin-bottom: 6px;
+        }
+
+        .history-card small {
+            display: block;
+            color: var(--muted);
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .empty-history {
+            grid-column: 1 / -1;
+            width: 100%;
+            max-width: none;
+            min-height: 92px;
+            margin: 0;
+            padding: 20px 24px;
+            border-radius: 18px;
+            color: var(--muted);
+            background: rgba(255,255,255,.58);
+            border: 1px dashed rgba(109,82,52,.22);
+            display: flex;
+            align-items: center;
+        }
+
+        .toast {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 50;
+            display: none;
+            max-width: min(420px, calc(100vw - 36px));
+            padding: 14px 16px;
+            border-radius: 18px;
+            color: #fff;
+            font-weight: 900;
+            background: rgba(35, 22, 14, .94);
+            box-shadow: 0 20px 48px rgba(0,0,0,.28);
+            backdrop-filter: blur(10px);
+        }
+
         .footer {
             margin-top: 18px;
             color: rgba(255,255,255,.62);
@@ -669,8 +977,14 @@ declare(strict_types=1);
 
             .row,
             .checks,
-            .two-col {
+            .two-col,
+            .library-grid,
+            .history-list {
                 grid-template-columns: 1fr;
+            }
+
+            .library-head {
+                flex-direction: column;
             }
 
             .hero,
@@ -705,10 +1019,13 @@ declare(strict_types=1);
             .hero,
             .note,
             .actions,
+            .library-panel,
+            .recipe-tools,
             .error,
             .loading,
             .raw,
-            .footer {
+            .footer,
+            .toast {
                 display: none !important;
             }
 
@@ -742,14 +1059,14 @@ declare(strict_types=1);
         <div class="logo">
             <div class="logo-mark">🍲</div>
             <div>
-                <div>Bucătarul de Serviciu</div>
+                <div>✦ Bucătarul de Serviciu ✦ </div>
                 <small style="opacity:.72;font-weight:800;">Rețete rapide, clare, în română</small>
             </div>
         </div>
 
         <div class="status-pill">
             <span class="status-dot"></span>
-            Bucătarul este conectat
+            ✦ COGIAN SERGIU ✦
         </div>
     </header>
 
@@ -785,7 +1102,7 @@ declare(strict_types=1);
                     <div class="field">
                         <label for="ingredients">
                             Ingrediente disponibile
-                            <span class="label-hint">* obligatoriu</span>
+                            <span class="label-hint">✦ obligatoriu</span>
                         </label>
                         <textarea
                             id="ingredients"
@@ -862,7 +1179,7 @@ declare(strict_types=1);
 
                     <div class="actions">
                         <button type="submit" id="generateBtn">Generare rețeta</button>
-                        <a href="javascript:window.print()" class="print-btn" id="printBtn" style="display:none;">Printare rețeta</a>
+                        <a href="javascript:void(0)" class="print-btn" id="printBtn" onclick="exportCurrentRecipeToPdf()" style="display:none;">Printare rețeta</a>
                     </div>
 
                     <div class="note">
@@ -872,6 +1189,43 @@ Sfat: pentru copii, persoane vârstnice, puteți specifica și observații de ge
                 </form>
             </div>
         </div>
+    </section>
+
+
+    <section class="library-panel" id="libraryPanel">
+        <div class="library-head">
+            <div>
+                <h2 class="library-title">Rețete salvate și mod offline</h2>
+                <p class="library-subtitle">
+                    Rețetele generate se salvează pe server, în fișierul data/recipes.json. Le puteți redeschide oricând din istoricul de mai jos, inclusiv în mod offline, fără generare AI.
+                </p>
+            </div>
+        </div>
+
+        <div class="library-grid">
+            <div class="field">
+                <label for="savedRecipeSelect">
+                    Alegeți o rețetă salvată
+                    <span class="label-hint">mod offline</span>
+                </label>
+                <select id="savedRecipeSelect">
+                    <option value="">Nu există rețete salvate</option>
+                </select>
+            </div>
+
+            <div class="library-actions">
+                <button type="button" class="small-btn" id="loadSavedBtn">Deschidere rețeta</button>
+                <button type="button" class="ghost-btn" id="exportSavedBtn">Exportare PDF</button>
+                <button type="button" class="danger-btn" id="deleteSavedBtn">Ștergere</button>
+            </div>
+        </div>
+
+        <div class="library-actions">
+            <button type="button" class="ghost-btn" id="refreshHistoryBtn">Actualizare istoric</button>
+            <button type="button" class="danger-btn" id="clearHistoryBtn">Golire istoric</button>
+        </div>
+
+        <div class="history-list" id="historyList"></div>
     </section>
 
     <div class="loading" id="loadingBox">
@@ -901,6 +1255,11 @@ Sfat: pentru copii, persoane vârstnice, puteți specifica și observații de ge
                 <div class="badge" id="badgeServings"></div>
                 <div class="badge" id="badgeDifficulty"></div>
             </div>
+
+            <div class="recipe-tools">
+                <button type="button" class="success-btn" id="saveRecipeBtn">Salvare rețetă</button>
+                <button type="button" class="ghost-btn" id="exportPdfBtn">Exportare PDF</button>
+            </div>
         </div>
 
         <div class="sections" id="sections"></div>
@@ -911,8 +1270,13 @@ Sfat: pentru copii, persoane vârstnice, puteți specifica și observații de ge
     </div>
 
 </div>
+<div class="toast" id="toastBox"></div>
 
 <script>
+const API_URL = window.location.pathname;
+let currentRecipe = null;
+let serverRecipesCache = [];
+
 function escapeHtml(value) {
     return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -953,6 +1317,189 @@ function box(title, content, extraClass = "") {
     `;
 }
 
+function showToast(message) {
+    const toast = document.getElementById("toastBox");
+    toast.textContent = message;
+    toast.style.display = "block";
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => {
+        toast.style.display = "none";
+    }, 3200);
+}
+
+async function apiRequest(action, payload = null) {
+    const options = payload === null ? {} : {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    };
+
+    const response = await fetch(`${API_URL}?api=${encodeURIComponent(action)}`, options);
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok || !data || data.ok !== true) {
+        throw new Error(data?.error || `Eroare server: HTTP ${response.status}`);
+    }
+
+    return data;
+}
+
+function formatDateRo(iso) {
+    try {
+        return new Date(iso).toLocaleString("ro-RO", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    } catch (error) {
+        return "dată necunoscută";
+    }
+}
+
+async function readSavedRecipes() {
+    const data = await apiRequest("list");
+    serverRecipesCache = Array.isArray(data.recipes) ? data.recipes : [];
+    return serverRecipesCache;
+}
+
+async function saveRecipeToHistory(recipe, source = "manual", silent = false) {
+    if (!recipe || typeof recipe !== "object") {
+        showToast("Nu există o rețetă de salvat.");
+        return;
+    }
+
+    await apiRequest("save", { recipe, source });
+    await renderSavedRecipes();
+
+    if (!silent) {
+        showToast("Rețeta a fost salvată pe server.");
+    }
+}
+
+async function renderSavedRecipes() {
+    const select = document.getElementById("savedRecipeSelect");
+    const list = document.getElementById("historyList");
+
+    try {
+        const items = await readSavedRecipes();
+        select.innerHTML = "";
+
+        if (items.length === 0) {
+            select.innerHTML = '<option value="">Nu există rețete salvate</option>';
+            list.innerHTML = '<p class="empty-history">Nu aveți încă rețete salvate pe server. Generați o rețetă și apăsați „Salvează rețeta”, sau lăsați aplicația să o salveze automat după generare.</p>';
+            return;
+        }
+
+        select.innerHTML = '<option value="">Selectați o rețetă salvată</option>' + items.map(item => {
+            return `<option value="${escapeHtml(item.id)}">${escapeHtml(item.title)} · ${escapeHtml(formatDateRo(item.createdAt))}</option>`;
+        }).join("");
+
+        list.innerHTML = items.slice(0, 9).map(item => {
+            return `
+                <div class="history-card">
+                    <strong>${escapeHtml(item.title)}</strong>
+                    <small>${escapeHtml(formatDateRo(item.createdAt))}<br>${escapeHtml(item.description || "Rețetă salvată pe server")}</small>
+                    <button type="button" class="ghost-btn" onclick="loadSavedRecipe('${escapeHtml(item.id)}')">Deschide</button>
+                </div>
+            `;
+        }).join("");
+    } catch (error) {
+        select.innerHTML = '<option value="">Istoricul de pe server nu poate fi citit</option>';
+        list.innerHTML = `<p class="empty-history">Eroare la citirea istoricului de pe server: ${escapeHtml(error.message || error)}</p>`;
+    }
+}
+
+function getSelectedSavedRecipe() {
+    const id = document.getElementById("savedRecipeSelect").value;
+    if (!id) return null;
+    return serverRecipesCache.find(item => item.id === id) || null;
+}
+
+async function loadSavedRecipe(id = null) {
+    const selectedId = id || document.getElementById("savedRecipeSelect").value;
+    if (!selectedId) {
+        showToast("Alegeți mai întâi o rețetă salvată.");
+        return;
+    }
+
+    if (serverRecipesCache.length === 0) {
+        await readSavedRecipes();
+    }
+
+    const item = serverRecipesCache.find(entry => entry.id === selectedId);
+    if (!item || !item.recipe) {
+        showToast("Rețeta salvată nu mai există pe server.");
+        await renderSavedRecipes();
+        return;
+    }
+
+    renderRecipe(item.recipe, false);
+    showToast("Rețeta a fost deschisă din istoric.");
+
+    window.scrollTo({
+        top: document.getElementById("recipeBox").offsetTop - 20,
+        behavior: "smooth"
+    });
+}
+
+async function deleteSelectedRecipe() {
+    const selected = getSelectedSavedRecipe();
+    if (!selected) {
+        showToast("Alegeți mai întâi o rețetă de șters.");
+        return;
+    }
+
+    if (!confirm("Ștergeți rețeta selectată de pe server?")) {
+        return;
+    }
+
+    await apiRequest("delete", { id: selected.id });
+    await renderSavedRecipes();
+    showToast("Rețeta a fost ștearsă de pe server.");
+}
+
+async function clearRecipeHistory() {
+    if (serverRecipesCache.length === 0) {
+        await readSavedRecipes();
+    }
+
+    if (serverRecipesCache.length === 0) {
+        showToast("Istoricul este deja gol.");
+        return;
+    }
+
+    if (!confirm("Sigur goliți tot istoricul de rețete de pe server?")) {
+        return;
+    }
+
+    await apiRequest("clear", {});
+    await renderSavedRecipes();
+    showToast("Istoricul de pe server a fost golit.");
+}
+
+function exportCurrentRecipeToPdf() {
+    if (!currentRecipe) {
+        const selected = getSelectedSavedRecipe();
+        if (selected && selected.recipe) {
+            renderRecipe(selected.recipe, false);
+        } else {
+            showToast("Nu există rețetă deschisă pentru exportare PDF.");
+            return;
+        }
+    }
+
+    const oldTitle = document.title;
+    const recipeTitle = safeText(currentRecipe?.titlu, "reteta").replace(/[^a-z0-9ăâîșț\s_-]/gi, "").trim();
+    document.title = "Reteta - " + (recipeTitle || "Bucatarul de Serviciu");
+
+    setTimeout(() => {
+        window.print();
+        document.title = oldTitle;
+    }, 150);
+}
+
 function extractJson(text) {
     let cleaned = String(text || "").trim();
 
@@ -989,7 +1536,7 @@ function buildPrompt() {
     const rules = [];
 
     if (document.getElementById("avoidFrying").checked) {
-        rules.push("Evită prăjelile. Preferă fiert, copt, înăbușit sau la cuptor.");
+        rules.push("Evitați prăjelile. Preferă fiert, copt, înăbușit sau la cuptor.");
     }
 
     if (document.getElementById("softFood").checked) {
@@ -997,7 +1544,7 @@ function buildPrompt() {
     }
 
     if (document.getElementById("lowSalt").checked) {
-        rules.push("Folosește sare puțină și spune că sarea se poate ajusta la final.");
+        rules.push("Folosiți sare puțină și spune că sarea se poate ajusta la final.");
     }
 
     const rulesText = rules.length ? rules.map(r => "- " + r).join("\n") : "- Nu există restricții bifate.";
@@ -1070,7 +1617,8 @@ Schema JSON obligatorie:
 `;
 }
 
-function renderRecipe(recipe) {
+async function renderRecipe(recipe, autoSave = false) {
+    currentRecipe = recipe;
     document.getElementById("title").textContent = safeText(recipe.titlu, "Rețetă propusă");
     document.getElementById("description").textContent = safeText(recipe.descriere, "");
 
@@ -1137,7 +1685,46 @@ function renderRecipe(recipe) {
 
     document.getElementById("recipeBox").style.display = "block";
     document.getElementById("printBtn").style.display = "inline-flex";
+
+    if (autoSave) {
+        try {
+            await saveRecipeToHistory(recipe, "generată", true);
+            showToast("Rețeta a fost generată și salvată automat pe server.");
+        } catch (error) {
+            showToast("Rețeta a fost generată, dar nu s-a putut salva pe server: " + (error.message || error));
+        }
+    }
 }
+
+
+document.addEventListener("DOMContentLoaded", async function () {
+    await renderSavedRecipes();
+
+    document.getElementById("loadSavedBtn").addEventListener("click", () => loadSavedRecipe());
+    document.getElementById("deleteSavedBtn").addEventListener("click", deleteSelectedRecipe);
+    document.getElementById("clearHistoryBtn").addEventListener("click", clearRecipeHistory);
+    document.getElementById("refreshHistoryBtn").addEventListener("click", async function () {
+        await renderSavedRecipes();
+        showToast("Istoricul de pe server a fost actualizat.");
+    });
+    document.getElementById("exportSavedBtn").addEventListener("click", async function () {
+        const selected = getSelectedSavedRecipe();
+        if (selected && selected.recipe) {
+            await renderRecipe(selected.recipe, false);
+            setTimeout(exportCurrentRecipeToPdf, 180);
+        } else {
+            exportCurrentRecipeToPdf();
+        }
+    });
+    document.getElementById("exportPdfBtn").addEventListener("click", exportCurrentRecipeToPdf);
+    document.getElementById("saveRecipeBtn").addEventListener("click", async function () {
+        try {
+            await saveRecipeToHistory(currentRecipe, "salvată manual", false);
+        } catch (error) {
+            showToast("Nu s-a putut salva pe server: " + (error.message || error));
+        }
+    });
+});
 
 document.getElementById("recipeForm").addEventListener("submit", async function (event) {
     event.preventDefault();
@@ -1196,7 +1783,7 @@ document.getElementById("recipeForm").addEventListener("submit", async function 
             throw new Error("AI-ul a răspuns, dar nu am putut citi JSON-ul. Vedeți răspunsul brut de mai jos.");
         }
 
-        renderRecipe(recipe);
+        await renderRecipe(recipe, true);
 
         window.scrollTo({
             top: document.getElementById("recipeBox").offsetTop - 20,
